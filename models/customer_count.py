@@ -2,10 +2,7 @@
 import json
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime, Text
-from sqlalchemy.ext.declarative import declarative_base
-
-# ใช้ Base จาก SQLAlchemy โดยตรงเพื่อป้องกันปัญหาการอิมพอร์ต
-Base = declarative_base()
+from server.db import Base
 
 class CustomerCount(Base):
     """โมเดลข้อมูลการนับลูกค้า"""
@@ -34,5 +31,5 @@ class CustomerCount(Base):
             'entry_count': self.entry_count,
             'exit_count': self.exit_count,
             'current_count': self.current_count,
-            'meta_data': json.loads(self.metadata) if self.metadata else {}
+            'meta_data': json.loads(self.meta_data) if self.meta_data else {}
         }

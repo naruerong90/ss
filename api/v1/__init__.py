@@ -2,6 +2,7 @@
 from api.v1.devices_bp import devices_bp
 from api.v1.customer_counts_bp import customer_counts_bp
 from api.v1.snapshots_bp import snapshots_bp
+from .branches_bp import branches_bp
 
 # สร้าง blueprints สำหรับ API อื่นๆ ที่ยังไม่ได้สร้าง
 from flask import Blueprint, jsonify

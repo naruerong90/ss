@@ -16,7 +16,7 @@ class Snapshot(Base):
     filename = Column(String(255), nullable=False)
     reason = Column(String(50), default='periodic')  # periodic, manual, alert
     current_count = Column(Integer, default=0)  # จำนวนคนในภาพ
-    metadata = Column(Text)  # เก็บข้อมูลเพิ่มเติมในรูปแบบ JSON
+    meta_data = Column(Text)  # เก็บข้อมูลเพิ่มเติมในรูปแบบ JSON
     
     def __repr__(self):
         return f"<Snapshot {self.camera_id} {self.timestamp}>"
@@ -31,5 +31,5 @@ class Snapshot(Base):
             'filename': self.filename,
             'reason': self.reason,
             'current_count': self.current_count,
-            'metadata': json.loads(self.metadata) if self.metadata else {}
+            'meta_data': json.loads(self.meta_data) if self.meta_data else {}
         }

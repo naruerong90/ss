@@ -46,7 +46,7 @@ def record_realtime():
                 entry_count=data['entry_count'],
                 exit_count=data['exit_count'],
                 current_count=data['current_count'],
-                metadata=json.dumps(data.get('metadata', {}))
+                meta_data=json.dumps(data.get('meta_data', {}))
             )
             
             db.add(new_count)
@@ -130,7 +130,7 @@ def record_batch():
                     entry_count=item['entry_count'],
                     exit_count=item['exit_count'],
                     current_count=item['current_count'],
-                    metadata=json.dumps(item.get('metadata', {}))
+                    meta_data=json.dumps(item.get('meta_data', {}))
                 )
                 
                 count_records.append(count_record)
@@ -588,3 +588,5 @@ def compare_periods(branch_id):
             'success': False,
             'message': 'เกิดข้อผิดพลาด: ' + str(e)
         }), 500
+    
+# Removed duplicate definition of record_realtime

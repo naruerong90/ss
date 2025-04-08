@@ -43,7 +43,7 @@ def register_device():
                 device.last_seen = datetime.now()
                 device.status = data.get('status', 'active')
                 device.version = data.get('version', '1.0.0')
-                device.metadata = json.dumps(data.get('metadata', {}))
+                device.meta_data = json.dumps(data.get('metadata', {}))
                 
                 db.commit()
                 
@@ -65,7 +65,7 @@ def register_device():
                     last_seen=datetime.now(),
                     status=data.get('status', 'active'),
                     version=data.get('version', '1.0.0'),
-                    metadata=json.dumps(data.get('metadata', {}))
+                    meta_data=json.dumps(data.get('metadata', {}))
                 )
                 
                 db.add(new_device)
@@ -78,6 +78,9 @@ def register_device():
                     'message': 'ลงทะเบียนอุปกรณ์ใหม่สำเร็จ',
                     'device_id': new_device.device_id
                 })
+                
+            # Similar modifications needed for other functions in this file
+            # that reference the metadata field
         
         except SQLAlchemyError as e:
             db.rollback()

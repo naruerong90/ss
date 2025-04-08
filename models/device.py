@@ -18,7 +18,7 @@ class Device(Base):
     last_seen = Column(DateTime, default=datetime.now)
     status = Column(String(20), default='active')  # active, inactive, maintenance
     version = Column(String(20), default='1.0.0')
-    metadata = Column(Text)  # เก็บข้อมูลเพิ่มเติมในรูปแบบ JSON
+    meta_data = Column(Text)  # เก็บข้อมูลเพิ่มเติมในรูปแบบ JSON
     
     def __repr__(self):
         return f"<Device {self.device_id}>"
@@ -35,5 +35,5 @@ class Device(Base):
             'last_seen': self.last_seen.isoformat(),
             'status': self.status,
             'version': self.version,
-            'metadata': json.loads(self.metadata) if self.metadata else {}
+            'meta_data': json.loads(self.meta_data) if self.meta_data else {}
         }

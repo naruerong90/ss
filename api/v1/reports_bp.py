@@ -609,3 +609,148 @@ def comparison_report(branch_id):
                     'success': False,
                     'message': 'ไม่พบสาขา'
                 }), 404 
+                
+            # ดึงข้อมูลช่วงที่ 1
+            period1_entries = db.query(func.sum(CustomerCount.entry_count)) \
+                .filter(and_(
+                    CustomerCount.branch_id == branch_id,
+                    CustomerCount.timestamp >= period1_start_dt,
+                    CustomerCount.timestamp < period1_end_dt
+                )) \
+                .scalar() or 0
+            
+            period1_exits = db.query(func.sum(CustomerCount.exit_count)) \
+                .filter(and_(
+                    CustomerCount.branch_id == branch_id,
+                    CustomerCount.timestamp >= period1_start_dt,
+                    CustomerCount.timestamp < period1_end_dt
+                )) \
+                .scalar() or 0
+            
+            period1_max = db.query(func.max(CustomerCount.current_count)) \
+                .filter(and_(
+                    CustomerCount.branch_id == branch_id,
+                    CustomerCount.timestamp >= period1_start_dt,
+                    CustomerCount.timestamp < period1_end_dt
+                )) \
+                .scalar() or 0
+            
+            # ดึงข้อมูลช่วงที่ 2
+            period2_entries = db.query(func.sum(CustomerCount.entry_count)) \
+                .filter(and_(
+                    CustomerCount.branch_id == branch_id,
+                    CustomerCount.timestamp >= period2_start_dt,
+                    CustomerCount.timestamp < period2_end_dt
+                )) \
+                .scalar() or 0
+            
+            period2_exits = db.query(func.sum(CustomerCount.exit_count)) \
+                .filter(and_(
+                    CustomerCount.branch_id == branch_id,
+                    CustomerCount.timestamp >= period2_start_dt,
+                    CustomerCount.timestamp < period2_end_dt
+                )) \
+                .scalar() or 0
+            
+            period2_max = db.query(func.max(CustomerCount.current_count)) \
+                .filter(and_(
+                    CustomerCount.branch_id == branch_id,
+                    CustomerCount.timestamp >= period2_start_dt,
+                    CustomerCount.timestamp < period2_end_dt
+                )) \
+                .scalar() or 0
+            
+            # คำนวณความเปลี่ยนแปลง
+            entries_change = ((period2_entries - period1_entries) / max(1, period1_entries)) * 100
+            exits_change = ((period2_exits - period1_exits) / max(1, period1_exits)) * 100
+            max_change = ((period2_max - period1_max) / max(1, period1_max)) * 100
+            
+            # สร้างข้อมูลผลลัพธ์
+            result = {
+                'success': True,
+                'branch_id': branch_id,
+                'branch_name': branch.name,
+                'period1': {
+                    'start_date': period1_start,
+                    'end_date': period1_end,
+                    'entries': period1_entries,
+                    'exits': period1_exits,
+                    'max_count': period1_max
+                },
+                'period2': {
+                    'start_date': period2_start,
+                    'end_date': period2_end,
+                    'entries': period2_entries,
+                    'exits': period2_exits,
+                    'max_count': period2_max
+                },
+                'changes': {
+                    'entries': round(entries_change, 2),
+                    'exits': round(exits_change, 2),
+                    'max_count': round(max_change, 2)
+                }
+            }
+            
+            # ส่งข้อมูลในรูปแบบที่ต้องการ
+            if output_format == 'csv':
+                # สร้างไฟล์ CSV
+                csv_data = io.StringIO()
+                csv_writer = csv.writer(csv_data)
+                
+                # เขียนส่วนหัว
+                csv_writer.writerow(['รายงานเปรียบเทียบ', f"{branch.name} ({branch_id})"])
+                csv_writer.writerow([])
+                
+                # เขียนข้อมูลทั้งสองช่วงเวลา
+                csv_writer.writerow(['ช่วงเวลาที่ 1', period1_start, 'ถึง', period1_end])
+                csv_writer.writerow(['จำนวนลูกค้าเข้า', period1_entries])
+                csv_writer.writerow(['จำนวนลูกค้าออก', period1_exits])
+                csv_writer.writerow(['จำนวนลูกค้าสูงสุด', period1_max])
+                csv_writer.writerow([])
+                
+                csv_writer.writerow(['ช่วงเวลาที่ 2', period2_start, 'ถึง', period2_end])
+                csv_writer.writerow(['จำนวนลูกค้าเข้า', period2_entries])
+                csv_writer.writerow(['จำนวนลูกค้าออก', period2_exits])
+                csv_writer.writerow(['จำนวนลูกค้าสูงสุด', period2_max])
+                csv_writer.writerow([])
+                
+                # เขียนข้อมูลการเปลี่ยนแปลง
+                csv_writer.writerow(['การเปลี่ยนแปลง (%)'])
+                csv_writer.writerow(['จำนวนลูกค้าเข้า', f"{round(entries_change, 2)}%"])
+                csv_writer.writerow(['จำนวนลูกค้าออก', f"{round(exits_change, 2)}%"])
+                csv_writer.writerow(['จำนวนลูกค้าสูงสุด', f"{round(max_change, 2)}%"])
+                
+                # สร้างไฟล์
+                csv_data.seek(0)
+                
+                # สร้างชื่อไฟล์
+                filename = f"comparison_report_{branch_id}_{period1_start}_vs_{period2_start}.csv"
+                
+                # ส่งไฟล์
+                return send_file(
+                    io.BytesIO(csv_data.getvalue().encode()),
+                    mimetype='text/csv',
+                    as_attachment=True,
+                    download_name=filename
+                )
+            else:
+                # ส่งข้อมูลในรูปแบบ JSON
+                return jsonify(result)
+        
+        except SQLAlchemyError as e:
+            db.rollback()
+            logger.error(f"เกิดข้อผิดพลาดในการดึงข้อมูล: {str(e)}")
+            return jsonify({
+                'success': False,
+                'message': 'เกิดข้อผิดพลาดในการดึงข้อมูล'
+            }), 500
+        
+        finally:
+            db.close()
+    
+    except Exception as e:
+        logger.error(f"เกิดข้อผิดพลาดในการสร้างรายงานเปรียบเทียบ: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': 'เกิดข้อผิดพลาด: ' + str(e)
+        }), 500

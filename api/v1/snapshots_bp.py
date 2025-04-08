@@ -62,7 +62,7 @@ def upload_snapshot(camera_id):
                 filename=filename,
                 reason=data.get('reason', 'periodic'),
                 current_count=data.get('current_count', 0),
-                metadata=json.dumps(data.get('metadata', {}))
+                meta_data=json.dumps(data.get('metadata', {}))
             )
             
             db.add(new_snapshot)
@@ -95,79 +95,7 @@ def upload_snapshot(camera_id):
             'message': 'เกิดข้อผิดพลาด: ' + str(e)
         }), 500
 
-@snapshots_bp.route('/latest/<branch_id>', methods=['GET'])
-@token_required
-def get_latest_snapshots(branch_id):
-    """ดึงภาพสแนปช็อตล่าสุดของแต่ละกล้องในสาขา (ต้องมีการยืนยันตัวตน)"""
-    try:
-        limit = request.args.get('limit', 5, type=int)
-        
-        db = get_session()
-        
-        try:
-            # ตรวจสอบว่ามีสาขานี้อยู่หรือไม่
-            branch = db.query(Branch).filter_by(branch_id=branch_id).first()
-            if not branch:
-                return jsonify({
-                    'success': False,
-                    'message': 'ไม่พบสาขา'
-                }), 404
-            
-            # ดึงรายการกล้องทั้งหมดในสาขา
-            camera_snapshots = db.query(
-                    Snapshot.camera_id, 
-                    func.max(Snapshot.id).label('latest_id')
-                ) \
-                .filter_by(branch_id=branch_id) \
-                .group_by(Snapshot.camera_id) \
-                .all()
-            
-            # ดึงข้อมูลสแนปช็อตล่าสุดของแต่ละกล้อง
-            results = []
-            for camera_id, latest_id in camera_snapshots:
-                snapshot = db.query(Snapshot).filter_by(id=latest_id).first()
-                if snapshot:
-                    results.append({
-                        'id': snapshot.id,
-                        'camera_id': snapshot.camera_id,
-                        'branch_id': snapshot.branch_id,
-                        'timestamp': snapshot.timestamp.isoformat(),
-                        'filename': snapshot.filename,
-                        'url': f"/api/v1/snapshots/view/{snapshot.id}",
-                        'reason': snapshot.reason,
-                        'current_count': snapshot.current_count
-                    })
-            
-            # เรียงตาม timestamp ล่าสุด
-            results.sort(key=lambda x: x['timestamp'], reverse=True)
-            
-            # จำกัดจำนวน
-            results = results[:limit]
-            
-            return jsonify({
-                'success': True,
-                'branch_id': branch_id,
-                'branch_name': branch.name,
-                'snapshots': results,
-                'count': len(results)
-            })
-        
-        except SQLAlchemyError as e:
-            logger.error(f"เกิดข้อผิดพลาดในการดึงข้อมูล: {str(e)}")
-            return jsonify({
-                'success': False,
-                'message': 'เกิดข้อผิดพลาดในการดึงข้อมูล'
-            }), 500
-        
-        finally:
-            db.close()
-    
-    except Exception as e:
-        logger.error(f"เกิดข้อผิดพลาดในการดึงภาพสแนปช็อตล่าสุด: {str(e)}")
-        return jsonify({
-            'success': False,
-            'message': 'เกิดข้อผิดพลาด: ' + str(e)
-        }), 500
+# Removed duplicate definition of upload_snapshot to avoid conflicts.
 
 @snapshots_bp.route('/camera/<camera_id>', methods=['GET'])
 @token_required
