@@ -1,0 +1,375 @@
+{% extends "base.html" %}
+
+{% block title %}ภาพสแนปช็อต - {{ branch.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">ภาพสแนปช็อต: {{ branch.name }}</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{{ url_for('web.dashboard') }}">แดชบอร์ด</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('web.branch_detail', branch_id=branch.branch_id) }}">{{ branch.name }}</a></li>
+        <li class="breadcrumb-item active">ภาพสแนปช็อต</li>
+    </ol>
+    
+    <!-- ตัวกรอง -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-filter me-1"></i>
+            ตัวกรอง
+        </div>
+        <div class="card-body">
+            <form id="filterForm" class="row g-3 align-items-end">
+                <div class="col-md-3 col-sm-6">
+                    <label for="cameraFilter" class="form-label">กล้อง</label>
+                    <select class="form-select" id="cameraFilter" name="camera_id">
+                        <option value="">ทั้งหมด</option>
+                        {% for camera in ['CAM-' + branch.branch_id + '-01', 'CAM-' + branch.branch_id + '-02', 'CAM-' + branch.branch_id + '-03', 'CAM-' + branch.branch_id + '-04'] %}
+                        <option value="{{ camera }}">{{ camera }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <label for="dateFrom" class="form-label">ตั้งแต่วันที่</label>
+                    <input type="date" class="form-control" id="dateFrom" name="date_from">
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <label for="dateTo" class="form-label">ถึงวันที่</label>
+                    <input type="date" class="form-control" id="dateTo" name="date_to">
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search me-1"></i> ค้นหา
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- ภาพสแนปช็อตล่าสุด -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-images me-1"></i>
+                            ภาพสแนปช็อตล่าสุด
+                        </div>
+                        <div>
+                            <button id="refreshBtn" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-sync-alt"></i> รีเฟรช
+                            </button>
+                            <button id="downloadAllBtn" class="btn btn-sm btn-outline-success">
+                                <i class="fas fa-download"></i> ดาวน์โหลดทั้งหมด
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row" id="snapshotGallery">
+                        {% if snapshots %}
+                            {% for snapshot in snapshots %}
+                                <div class="col-md-3 col-sm-6 mb-4">
+                                    <div class="card h-100">
+                                        <div class="card-header py-2">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <small>{{ snapshot.camera_id }}</small>
+                                                <small class="text-muted">{{ snapshot.timestamp }}</small>
+                                            </div>
+                                        </div>
+                                        <a href="{{ snapshot.url }}" class="snapshot-link" data-id="{{ snapshot.id }}" target="_blank">
+                                            <img src="{{ snapshot.url }}" class="card-img-top" alt="Snapshot {{ snapshot.id }}">
+                                        </a>
+                                        <div class="card-footer py-2">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <small>จำนวนคน: {{ snapshot.current_count }}</small>
+                                                <div>
+                                                    <a href="{{ snapshot.url }}" class="btn btn-sm btn-outline-primary" download title="ดาวน์โหลด">
+                                                        <i class="fas fa-download"></i>
+                                                    </a>
+                                                    <button class="btn btn-sm btn-outline-danger btn-delete-snapshot" data-id="{{ snapshot.id }}" title="ลบ">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="col-12 text-center py-5">
+                                <i class="fas fa-camera fa-4x mb-3 text-muted"></i>
+                                <h5>ไม่พบภาพสแนปช็อต</h5>
+                                <p class="text-muted">ยังไม่มีภาพสแนปช็อตถูกบันทึกสำหรับสาขานี้</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">ก่อนหน้า</a>
+                            </li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">ถัดไป</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ตั้งค่าการทำสแนปช็อตอัตโนมัติ -->
+    {% if session.get('is_admin', False) %}
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-cog me-1"></i>
+                    ตั้งค่าการถ่ายภาพอัตโนมัติ
+                </div>
+                <div class="card-body">
+                    <form id="snapshotSettingsForm">
+                        <div class="mb-3">
+                            <label for="snapshotInterval" class="form-label">ช่วงเวลาในการถ่ายภาพอัตโนมัติ</label>
+                            <select class="form-select" id="snapshotInterval" name="snapshot_interval">
+                                <option value="5">ทุก 5 นาที</option>
+                                <option value="15" selected>ทุก 15 นาที</option>
+                                <option value="30">ทุก 30 นาที</option>
+                                <option value="60">ทุก 1 ชั่วโมง</option>
+                                <option value="0">ปิดการถ่ายภาพอัตโนมัติ</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="retentionDays" class="form-label">เก็บภาพไว้นานเท่าไร</label>
+                            <select class="form-select" id="retentionDays" name="retention_days">
+                                <option value="1">1 วัน</option>
+                                <option value="7">7 วัน</option>
+                                <option value="30" selected>30 วัน</option>
+                                <option value="90">90 วัน</option>
+                                <option value="180">180 วัน</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="eventBasedSnapshot" name="event_based_snapshot" checked>
+                                <label class="form-check-label" for="eventBasedSnapshot">ถ่ายภาพเมื่อมีการเปลี่ยนแปลงจำนวนลูกค้า</label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">บันทึกการตั้งค่า</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-broom me-1"></i>
+                    การจัดการพื้นที่จัดเก็บ
+                </div>
+                <div class="card-body">
+                    <p>จำนวนภาพทั้งหมด: <span class="fw-bold">{{ snapshots|length if snapshots else 0 }}</span> ภาพ</p>
+                    <p>พื้นที่จัดเก็บที่ใช้: <span class="fw-bold">{{ (snapshots|length if snapshots else 0) * 0.25 }}</span> MB</p>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        การล้างข้อมูลจะลบภาพสแนปช็อตทั้งหมดตามเงื่อนไขที่เลือก และไม่สามารถเรียกคืนได้
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="cleanupPeriod" class="form-label">ล้างภาพสแนปช็อตเก่ากว่า</label>
+                        <select class="form-select" id="cleanupPeriod" name="cleanup_period">
+                            <option value="1">1 วัน</option>
+                            <option value="7">7 วัน</option>
+                            <option value="30" selected>30 วัน</option>
+                            <option value="90">90 วัน</option>
+                            <option value="all">ทั้งหมด</option>
+                        </select>
+                    </div>
+                    
+                    <button id="cleanupBtn" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i> ล้างข้อมูล
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal ดูภาพขนาดใหญ่ -->
+<div class="modal fade" id="snapshotModal" tabindex="-1" aria-labelledby="snapshotModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="snapshotModalLabel">ภาพสแนปช็อต</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img src="" id="modalImage" class="img-fluid" alt="Snapshot">
+            </div>
+            <div class="modal-footer">
+                <div class="text-start me-auto">
+                    <div id="snapshotInfo"></div>
+                </div>
+                <a href="#" class="btn btn-primary" id="downloadBtn" download>
+                    <i class="fas fa-download me-1"></i> ดาวน์โหลด
+                </a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal ยืนยันการลบ -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteConfirmModalLabel">ยืนยันการลบ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                คุณแน่ใจหรือไม่ที่จะลบภาพสแนปช็อตนี้?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">ลบ</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // สำหรับดูภาพขนาดใหญ่
+    const snapshotLinks = document.querySelectorAll('.snapshot-link');
+    const modalImage = document.getElementById('modalImage');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const snapshotInfo = document.getElementById('snapshotInfo');
+    
+    snapshotLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const url = this.getAttribute('href');
+            const id = this.getAttribute('data-id');
+            
+            // หาข้อมูลของภาพจาก snapshots array
+            const snapshotData = findSnapshotById(id);
+            
+            modalImage.src = url;
+            downloadBtn.href = url;
+            
+            // แสดงข้อมูลเพิ่มเติม
+            if (snapshotData) {
+                snapshotInfo.innerHTML = `
+                    <p class="mb-1"><strong>กล้อง:</strong> ${snapshotData.camera_id}</p>
+                    <p class="mb-1"><strong>เวลา:</strong> ${snapshotData.timestamp}</p>
+                    <p class="mb-0"><strong>จำนวนคน:</strong> ${snapshotData.current_count}</p>
+                `;
+            } else {
+                snapshotInfo.innerHTML = '';
+            }
+            
+            // เปิด Modal
+            const snapshotModal = new bootstrap.Modal(document.getElementById('snapshotModal'));
+            snapshotModal.show();
+        });
+    });
+    
+    // ฟังก์ชันสำหรับหาข้อมูลภาพจาก ID
+    function findSnapshotById(id) {
+        // แปลงข้อมูล snapshots จาก Jinja ให้อยู่ในรูปแบบที่ JavaScript ใช้งานได้
+        const snapshots = [
+            {% for snapshot in snapshots %}
+            {
+                id: {{ snapshot.id }},
+                camera_id: "{{ snapshot.camera_id }}",
+                timestamp: "{{ snapshot.timestamp }}",
+                current_count: {{ snapshot.current_count }},
+                url: "{{ snapshot.url }}"
+            },
+            {% endfor %}
+        ];
+        
+        return snapshots.find(s => s.id == id);
+    }
+    
+    // จัดการการลบภาพ
+    let snapshotIdToDelete = null;
+    const deleteButtons = document.querySelectorAll('.btn-delete-snapshot');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            snapshotIdToDelete = this.getAttribute('data-id');
+            
+            // เปิด Modal ยืนยันการลบ
+            const deleteConfirmModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+            deleteConfirmModal.show();
+        });
+    });
+    
+    confirmDeleteBtn.addEventListener('click', function() {
+        if (snapshotIdToDelete) {
+            // ส่ง request ไปยัง API เพื่อลบภาพ
+            // ในที่นี้จะจำลองการลบโดยแสดง alert
+            alert('ลบภาพ ID: ' + snapshotIdToDelete + ' เรียบร้อยแล้ว');
+            
+            // Reload หน้า
+            window.location.reload();
+        }
+    });
+    
+    // จัดการการตั้งค่า
+    document.getElementById('snapshotSettingsForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // จำลองการบันทึกการตั้งค่า
+        alert('บันทึกการตั้งค่าเรียบร้อยแล้ว');
+    });
+    
+    // จัดการการล้างข้อมูล
+    document.getElementById('cleanupBtn').addEventListener('click', function() {
+        const period = document.getElementById('cleanupPeriod').value;
+        
+        if (confirm(`คุณแน่ใจหรือไม่ที่จะลบภาพสแนปช็อตทั้งหมดที่เก่ากว่า ${period == 'all' ? 'ทั้งหมด' : period + ' วัน'}? การดำเนินการนี้ไม่สามารถเรียกคืนได้`)) {
+            // จำลองการล้างข้อมูล
+            alert('ล้างข้อมูลเรียบร้อยแล้ว');
+            window.location.reload();
+        }
+    });
+    
+    // จัดการการกรอง
+    document.getElementById('filterForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // จำลองการกรองข้อมูล
+        const cameraId = document.getElementById('cameraFilter').value;
+        const dateFrom = document.getElementById('dateFrom').value;
+        const dateTo = document.getElementById('dateTo').value;
+        
+        alert(`กรองข้อมูล: กล้อง=${cameraId || 'ทั้งหมด'}, วันที่เริ่ม=${dateFrom || 'ไม่ระบุ'}, วันที่สิ้นสุด=${dateTo || 'ไม่ระบุ'}`);
+    });
+    
+    // รีเฟรชข้อมูล
+    document.getElementById('refreshBtn').addEventListener('click', function() {
+        window.location.reload();
+    });
+    
+    // ดาวน์โหลดทั้งหมด
+    document.getElementById('downloadAllBtn').addEventListener('click', function() {
+        alert('กำลังเริ่มดาวน์โหลดภาพทั้งหมด...');
+    });
+</script>
+{% endblock %}

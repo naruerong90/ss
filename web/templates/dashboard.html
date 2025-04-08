@@ -1,0 +1,382 @@
+{% extends "base.html" %}
+
+{% block title %}แดชบอร์ด{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">แดชบอร์ด</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item active">ภาพรวมระบบ</li>
+    </ol>
+    
+    <!-- สรุปข้อมูลล่าสุด -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-primary text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">สาขาทั้งหมด</h5>
+                            <div class="text-white-50">จำนวนทั้งหมด</div>
+                        </div>
+                        <div class="h1 mb-0">{{ branches|length }}</div>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <a class="small text-white stretched-link" href="#">ดูรายละเอียด</a>
+                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                </div>
+            </div>
+        </div>
+        {% set total_current = 0 %}
+        {% for branch in branches %}
+            {% set total_current = total_current + branch.current_count %}
+        {% endfor %}
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-success text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">ลูกค้าปัจจุบัน</h5>
+                            <div class="text-white-50">ทุกสาขา</div>
+                        </div>
+                        <div class="h1 mb-0">{{ total_current }}</div>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <a class="small text-white stretched-link" href="#">ดูรายละเอียด</a>
+                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-info text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">สาขาที่มีคนเยอะสุด</h5>
+                            <div class="text-white-50">ปัจจุบัน</div>
+                        </div>
+                        {% set max_branch = {"name": "ไม่มีข้อมูล", "count": 0} %}
+                        {% for branch in branches %}
+                            {% if branch.current_count > max_branch.count %}
+                                {% set max_branch = {"name": branch.name, "count": branch.current_count} %}
+                            {% endif %}
+                        {% endfor %}
+                        <div class="h3 mb-0">{{ max_branch.name }}</div>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <a class="small text-white stretched-link" href="#">ดูรายละเอียด</a>
+                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-warning text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">อัตราการใช้งาน</h5>
+                            <div class="text-white-50">เฉลี่ยทุกสาขา</div>
+                        </div>
+                        {% set total_capacity = 0 %}
+                        {% for branch in branches %}
+                            {% set total_capacity = total_capacity + branch.capacity %}
+                        {% endfor %}
+                        <div class="h1 mb-0">
+                            {% if total_capacity > 0 %}
+                                {{ ((total_current / total_capacity) * 100)|round }}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <a class="small text-white stretched-link" href="#">ดูรายละเอียด</a>
+                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ตารางข้อมูลสาขา -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-table me-1"></i>
+            ข้อมูลสาขา
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="branchesTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>สาขา</th>
+                            <th>จำนวนลูกค้าปัจจุบัน</th>
+                            <th>ความจุสูงสุด</th>
+                            <th>อัตราการใช้งาน</th>
+                            <th>อัพเดตล่าสุด</th>
+                            <th>การดำเนินการ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for branch in branches %}
+                        <tr>
+                            <td>{{ branch.name }}</td>
+                            <td>{{ branch.current_count }}</td>
+                            <td>{{ branch.capacity }}</td>
+                            <td>
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" role="progressbar" 
+                                        style="width: {{ (branch.current_count / branch.capacity * 100)|round }}%" 
+                                        aria-valuenow="{{ branch.current_count }}" 
+                                        aria-valuemin="0" 
+                                        aria-valuemax="{{ branch.capacity }}">
+                                        {{ (branch.current_count / branch.capacity * 100)|round }}%
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ branch.last_updated }}</td>
+                            <td>
+                                <a href="{{ url_for('web.branch_detail', branch_id=branch.branch_id) }}" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-eye"></i> ดู
+                                </a>
+                                <a href="{{ url_for('web.snapshots', branch_id=branch.branch_id) }}" class="btn btn-info btn-sm">
+                                    <i class="fas fa-camera"></i> ภาพ
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- กราฟ -->
+    <div class="row">
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-area me-1"></i>
+                    แนวโน้มลูกค้าวันนี้
+                </div>
+                <div class="card-body">
+                    <canvas id="todayTrendChart" width="100%" height="40"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar me-1"></i>
+                    จำนวนลูกค้าเข้า-ออกรายวัน (7 วันล่าสุด)
+                </div>
+                <div class="card-body">
+                    <canvas id="weeklyChart" width="100%" height="40"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- กราฟสาขาทั้งหมด -->
+    <div class="row">
+        {% for branch in branches %}
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-line me-1"></i>
+                    {{ branch.name }} - แนวโน้มลูกค้าวันนี้
+                </div>
+                <div class="card-body">
+                    <canvas id="branch{{ loop.index }}Chart" width="100%" height="30"></canvas>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script>
+    // แนวโน้มลูกค้าวันนี้
+    const todayTrendCtx = document.getElementById('todayTrendChart');
+    
+    const todayTrendChart = new Chart(todayTrendCtx, {
+        type: 'line',
+        data: {
+            labels: ['6:00', '7:00', '8:00', '9:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00'],
+            datasets: [{
+                label: 'จำนวนลูกค้าเฉลี่ยทุกสาขา',
+                data: [5, 10, 20, 35, 50, 65, 80, 90, 85, 70, 60, 45, 30, 20, 10],
+                borderColor: '#4e73df',
+                backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                pointRadius: 3,
+                pointBackgroundColor: '#4e73df',
+                pointBorderColor: '#4e73df',
+                pointHoverRadius: 5,
+                pointHoverBackgroundColor: '#4e73df',
+                pointHoverBorderColor: '#4e73df',
+                pointHitRadius: 10,
+                pointBorderWidth: 2,
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'จำนวนลูกค้า'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'เวลา'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            }
+        }
+    });
+    
+    // จำนวนลูกค้าเข้า-ออกรายวัน (7 วันล่าสุด)
+    const weeklyCtx = document.getElementById('weeklyChart');
+    
+    const weeklyChart = new Chart(weeklyCtx, {
+        type: 'bar',
+        data: {
+            labels: [
+                '{{ (now - timedelta(days=6)).strftime("%d/%m") }}',
+                '{{ (now - timedelta(days=5)).strftime("%d/%m") }}',
+                '{{ (now - timedelta(days=4)).strftime("%d/%m") }}',
+                '{{ (now - timedelta(days=3)).strftime("%d/%m") }}',
+                '{{ (now - timedelta(days=2)).strftime("%d/%m") }}',
+                '{{ (now - timedelta(days=1)).strftime("%d/%m") }}',
+                '{{ now.strftime("%d/%m") }}'
+            ],
+            datasets: [{
+                label: 'จำนวนลูกค้าเข้า',
+                data: [120, 150, 180, 130, 160, 190, 170],
+                backgroundColor: 'rgba(28, 200, 138, 0.5)',
+                borderColor: 'rgb(28, 200, 138)',
+                borderWidth: 1
+            }, {
+                label: 'จำนวนลูกค้าออก',
+                data: [110, 140, 170, 120, 150, 180, 160],
+                backgroundColor: 'rgba(246, 194, 62, 0.5)',
+                borderColor: 'rgb(246, 194, 62)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'จำนวนลูกค้า'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'วันที่'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            }
+        }
+    });
+    
+    // กราฟของแต่ละสาขา
+    {% for branch in branches %}
+        {% if branch.chart_data %}
+            const branch{{ loop.index }}Data = {{ branch.chart_data|safe }};
+            const branch{{ loop.index }}Ctx = document.getElementById('branch{{ loop.index }}Chart');
+            
+            const labels = branch{{ loop.index }}Data.map(item => item.timestamp);
+            const entries = branch{{ loop.index }}Data.map(item => item.entries);
+            const exits = branch{{ loop.index }}Data.map(item => item.exits);
+            
+            const branch{{ loop.index }}Chart = new Chart(branch{{ loop.index }}Ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'จำนวนลูกค้าเข้า',
+                        data: entries,
+                        borderColor: 'rgb(28, 200, 138)',
+                        backgroundColor: 'rgba(28, 200, 138, 0.05)',
+                        pointRadius: 3,
+                        pointBackgroundColor: 'rgb(28, 200, 138)',
+                        pointBorderColor: 'rgb(28, 200, 138)',
+                        pointHoverRadius: 5,
+                        fill: false,
+                        tension: 0.3
+                    }, {
+                        label: 'จำนวนลูกค้าออก',
+                        data: exits,
+                        borderColor: 'rgb(246, 194, 62)',
+                        backgroundColor: 'rgba(246, 194, 62, 0.05)',
+                        pointRadius: 3,
+                        pointBackgroundColor: 'rgb(246, 194, 62)',
+                        pointBorderColor: 'rgb(246, 194, 62)',
+                        pointHoverRadius: 5,
+                        fill: false,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'จำนวนลูกค้า'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'เวลา'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        {% endif %}
+    {% endfor %}
+    
+    // DataTable
+    $(document).ready(function() {
+        $('#branchesTable').DataTable({
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/th.json'
+            }
+        });
+    });
+</script>
+{% endblock %}

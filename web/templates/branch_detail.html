@@ -1,0 +1,416 @@
+{% extends "base.html" %}
+
+{% block title %}สาขา {{ branch.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">สาขา: {{ branch.name }}</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{{ url_for('web.dashboard') }}">แดชบอร์ด</a></li>
+        <li class="breadcrumb-item active">{{ branch.name }}</li>
+    </ol>
+    
+    <!-- สรุปข้อมูลล่าสุด -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-primary text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">จำนวนลูกค้าปัจจุบัน</h5>
+                            <div class="text-white-50">ณ เวลานี้</div>
+                        </div>
+                        <div class="h1 mb-0">{{ branch.current_customer_count }}</div>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <a class="small text-white stretched-link" href="#hourly-trend">ดูแนวโน้ม</a>
+                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-success text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">ความจุ</h5>
+                            <div class="text-white-50">จำนวนสูงสุด</div>
+                        </div>
+                        <div class="h1 mb-0">{{ branch.capacity }}</div>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <div class="small text-white">จำนวนลูกค้าที่รองรับได้</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-info text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">อัตราการเข้าใช้</h5>
+                            <div class="text-white-50">เทียบกับความจุ</div>
+                        </div>
+                        <div class="h1 mb-0">
+                            {% if branch.capacity > 0 %}
+                                {{ ((branch.current_customer_count / branch.capacity) * 100)|round }}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar bg-success" role="progressbar" 
+                             style="width: {{ (branch.current_customer_count / branch.capacity * 100)|round }}%" 
+                             aria-valuenow="{{ branch.current_customer_count }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="{{ branch.capacity }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-warning text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-0">อัพเดตล่าสุด</h5>
+                            <div class="text-white-50">เวลา</div>
+                        </div>
+                        <div class="h5 mb-0">{{ branch.last_updated }}</div>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <a class="small text-white stretched-link" href="{{ url_for('web.snapshots', branch_id=branch.branch_id) }}">ดูภาพล่าสุด</a>
+                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ข้อมูลสาขา -->
+    <div class="row">
+        <div class="col-xl-4 col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-info-circle me-1"></i>
+                    ข้อมูลสาขา
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-borderless">
+                            <tbody>
+                                <tr>
+                                    <th style="width: 40%">รหัสสาขา:</th>
+                                    <td>{{ branch.branch_id }}</td>
+                                </tr>
+                                <tr>
+                                    <th>ชื่อสาขา:</th>
+                                    <td>{{ branch.name }}</td>
+                                </tr>
+                                <tr>
+                                    <th>ที่อยู่:</th>
+                                    <td>{{ branch.address }}</td>
+                                </tr>
+                                <tr>
+                                    <th>จังหวัด:</th>
+                                    <td>{{ branch.province }}</td>
+                                </tr>
+                                <tr>
+                                    <th>รหัสไปรษณีย์:</th>
+                                    <td>{{ branch.postal_code }}</td>
+                                </tr>
+                                <tr>
+                                    <th>โทรศัพท์:</th>
+                                    <td>{{ branch.phone }}</td>
+                                </tr>
+                                <tr>
+                                    <th>ผู้จัดการ:</th>
+                                    <td>{{ branch.manager_name }}</td>
+                                </tr>
+                                <tr>
+                                    <th>เวลาเปิด-ปิด:</th>
+                                    <td>{{ branch.open_time }} - {{ branch.close_time }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ภาพล่าสุดจากกล้อง -->
+        <div class="col-xl-8 col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-camera me-1"></i>
+                    ภาพล่าสุดจากกล้อง
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for i in range(4) %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-header py-2">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div><small>CAM-{{ branch.branch_id }}-{{ "%02d"|format(i+1) }}</small></div>
+                                        <div class="text-success"><small><i class="fas fa-circle"></i> ออนไลน์</small></div>
+                                    </div>
+                                </div>
+                                <div class="card-body p-0 text-center">
+                                    <img src="/api/placeholder/400/300" class="img-fluid" alt="กล้อง {{ i+1 }}">
+                                </div>
+                                <div class="card-footer py-1">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small>{{ branch.last_updated }}</small>
+                                        <small>จำนวนคน: {{ branch.current_customer_count // 2 + i }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-center mt-2">
+                        <a href="{{ url_for('web.snapshots', branch_id=branch.branch_id) }}" class="btn btn-primary">
+                            <i class="fas fa-images"></i> ดูภาพทั้งหมด
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- กราฟแนวโน้มลูกค้าตามชั่วโมง -->
+    <div class="card mb-4" id="hourly-trend">
+        <div class="card-header">
+            <i class="fas fa-chart-line me-1"></i>
+            แนวโน้มลูกค้าตามชั่วโมง (วันนี้)
+        </div>
+        <div class="card-body">
+            <canvas id="hourlyTrendChart" width="100%" height="30"></canvas>
+        </div>
+    </div>
+    
+    <!-- กราฟแนวโน้มลูกค้ารายวัน -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-chart-bar me-1"></i>
+            สถิติลูกค้าเข้า-ออกรายวัน (30 วันล่าสุด)
+        </div>
+        <div class="card-body">
+            <canvas id="dailyTrendChart" width="100%" height="30"></canvas>
+        </div>
+    </div>
+    
+    <!-- ตารางข้อมูลการเข้าออกรายวันในสัปดาห์ที่ผ่านมา -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-table me-1"></i>
+            สถิติลูกค้าเข้า-ออก (7 วันล่าสุด)
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="weeklyStatsTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>วันที่</th>
+                            <th>จำนวนเข้า</th>
+                            <th>จำนวนออก</th>
+                            <th>จำนวนสูงสุด</th>
+                            <th>เฉลี่ยต่อชั่วโมง</th>
+                            <th>ชั่วโมงที่คนเยอะที่สุด</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for i in range(7) %}
+                        {% set day = (now - timedelta(days=i)) %}
+                        <tr>
+                            <td>{{ day.strftime('%Y-%m-%d') }}</td>
+                            <td>{{ 100 + (150 - i * 10) }}</td>
+                            <td>{{ 90 + (150 - i * 10) }}</td>
+                            <td>{{ 50 + (20 - i * 2) }}</td>
+                            <td>{{ 12 + (5 - i) }}</td>
+                            <td>{{ ["18:00", "17:00", "18:00", "12:00", "19:00", "16:00", "17:00"][i] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script>
+    // แนวโน้มลูกค้าตามชั่วโมง
+    const hourlyCtx = document.getElementById('hourlyTrendChart');
+    
+    const hourlyLabels = {{ hourly_chart_data|default('[]')|safe }}.map(item => item.datetime.split(' ')[1].substring(0, 5));
+    const hourlyEntries = {{ hourly_chart_data|default('[]')|safe }}.map(item => item.entries);
+    const hourlyExits = {{ hourly_chart_data|default('[]')|safe }}.map(item => item.exits);
+    const hourlyMax = {{ hourly_chart_data|default('[]')|safe }}.map(item => item.max_count);
+    
+    // ถ้าไม่มีข้อมูล สร้างข้อมูลจำลอง
+    const dummyHours = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00'];
+    const dummyEntries = [15, 25, 35, 60, 45, 30, 40, 50, 55, 65, 50, 30];
+    const dummyExits = [5, 15, 25, 40, 55, 35, 25, 35, 45, 50, 60, 70];
+    const dummyMax = [15, 25, 35, 55, 45, 40, 55, 70, 80, 95, 85, 45];
+    
+    const hourlyTrendChart = new Chart(hourlyCtx, {
+        type: 'line',
+        data: {
+            labels: hourlyLabels.length > 0 ? hourlyLabels : dummyHours,
+            datasets: [{
+                label: 'จำนวนลูกค้าเข้า',
+                data: hourlyEntries.length > 0 ? hourlyEntries : dummyEntries,
+                borderColor: 'rgba(28, 200, 138, 1)',
+                backgroundColor: 'rgba(28, 200, 138, 0.1)',
+                fill: false,
+                tension: 0.3
+            }, {
+                label: 'จำนวนลูกค้าออก',
+                data: hourlyExits.length > 0 ? hourlyExits : dummyExits,
+                borderColor: 'rgba(246, 194, 62, 1)',
+                backgroundColor: 'rgba(246, 194, 62, 0.1)',
+                fill: false,
+                tension: 0.3
+            }, {
+                label: 'จำนวนลูกค้าสูงสุด',
+                data: hourlyMax.length > 0 ? hourlyMax : dummyMax,
+                borderColor: 'rgba(78, 115, 223, 1)',
+                backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                fill: false,
+                borderDash: [5, 5],
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'จำนวนลูกค้า'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'เวลา'
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
+                },
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            }
+        }
+    });
+    
+    // กราฟแนวโน้มลูกค้ารายวัน
+    const dailyCtx = document.getElementById('dailyTrendChart');
+    
+    const dailyLabels = {{ daily_chart_data|default('[]')|safe }}.map(item => item.date);
+    const dailyEntries = {{ daily_chart_data|default('[]')|safe }}.map(item => item.entries);
+    const dailyExits = {{ daily_chart_data|default('[]')|safe }}.map(item => item.exits);
+    const dailyMax = {{ daily_chart_data|default('[]')|safe }}.map(item => item.max_count);
+    
+    // สร้างข้อมูล 30 วันย้อนหลังถ้าไม่มีข้อมูล
+    const dummyDays = Array.from({length: 30}, (_, i) => {
+        const date = new Date();
+        date.setDate(date.getDate() - 29 + i);
+        return date.toISOString().split('T')[0];
+    });
+    
+    // สร้างข้อมูลจำลอง
+    const dummyDailyEntries = Array.from({length: 30}, () => Math.floor(Math.random() * 100) + 100);
+    const dummyDailyExits = dummyDailyEntries.map(e => e - Math.floor(Math.random() * 20));
+    const dummyDailyMax = dummyDailyEntries.map(e => Math.floor(e * 0.6));
+    
+    const dailyTrendChart = new Chart(dailyCtx, {
+        type: 'bar',
+        data: {
+            labels: dailyLabels.length > 0 ? dailyLabels : dummyDays,
+            datasets: [{
+                label: 'จำนวนลูกค้าเข้า',
+                data: dailyEntries.length > 0 ? dailyEntries : dummyDailyEntries,
+                backgroundColor: 'rgba(28, 200, 138, 0.7)',
+                borderColor: 'rgb(28, 200, 138)',
+                borderWidth: 1
+            }, {
+                label: 'จำนวนลูกค้าออก',
+                data: dailyExits.length > 0 ? dailyExits : dummyDailyExits,
+                backgroundColor: 'rgba(246, 194, 62, 0.7)',
+                borderColor: 'rgb(246, 194, 62)',
+                borderWidth: 1
+            }, {
+                type: 'line',
+                label: 'จำนวนลูกค้าสูงสุด',
+                data: dailyMax.length > 0 ? dailyMax : dummyDailyMax,
+                borderColor: 'rgba(78, 115, 223, 1)',
+                backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                fill: false,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'จำนวนลูกค้า'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'วันที่'
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
+                },
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            }
+        }
+    });
+    
+    // DataTable
+    $(document).ready(function() {
+        $('#weeklyStatsTable').DataTable({
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/th.json'
+            },
+            pageLength: 7,
+            ordering: false,
+            searching: false,
+            paging: false,
+            info: false
+        });
+    });
+</script>
+{% endblock %}
